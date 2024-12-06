@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "users") // Specifies the table name in the database
+@Table(name = "users")
 public class User {
 
     @Id
@@ -19,5 +19,5 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private Status status; // Enum for ONLINE/OFFLINE
+    private Status status;
 }
