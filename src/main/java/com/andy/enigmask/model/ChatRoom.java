@@ -25,5 +25,4 @@ public class ChatRoom {
 
     @Column(name = "recipient_id", nullable = false)
     private String recipientId;
-
 }
