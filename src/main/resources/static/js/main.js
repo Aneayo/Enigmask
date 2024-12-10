@@ -30,7 +30,6 @@ function connect(event) {
     event.preventDefault();
 }
 
-
 function onConnected() {
     stompClient.subscribe(`/user/${nickname}/queue/messages`, onMessageReceived);
     stompClient.subscribe(`/user/topic/public`, onMessageReceived);
@@ -38,7 +37,7 @@ function onConnected() {
     // register the connected user
     stompClient.send("/app/user.addUser",
         {},
-        JSON.stringify({nickName: nickname, fullName: fullname, status: 'ONLINE'})
+        JSON.stringify({nickname: nickname, fullname: fullname, status: 'ONLINE'})
     );
 
     const connectedUserElement = document.querySelector('#connected-user-fullname');
@@ -98,7 +97,7 @@ function appendUserElement(user, connectedUsersList) {
     listItem.id = user.nickName;
 
     const userImage = document.createElement('img');
-    userImage.src = '../img/user_icon.png';
+    userImage.src = '../image/user_icon.png';
     userImage.alt = user.fullName;
 
     const usernameSpan = document.createElement('span');
