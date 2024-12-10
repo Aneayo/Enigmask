@@ -33,19 +33,22 @@ function connect(event) {
 
 function onConnected() {
     stompClient.subscribe(`/user/${nickname}/queue/messages`, onMessageReceived);
-    stompClient.subscribe(`/user/public`, onMessageReceived);
+    stompClient.subscribe(`/user/topic/public`, onMessageReceived);
 
     // register the connected user
     stompClient.send("/app/user.addUser",
         {},
         JSON.stringify({nickName: nickname, fullName: fullname, status: 'ONLINE'})
     );
+
     const connectedUserElement = document.querySelector('#connected-user-fullname');
+
     if (connectedUserElement) {
         connectedUserElement.textContent = fullname;
     } else {
         console.error("Error: The element '#connected-user-fullname' does not exist in the DOM.");
     }
+
     findAndDisplayConnectedUsers().then();
 }
 
@@ -150,9 +153,11 @@ async function fetchAndDisplayUserChat() {
     const userChatResponse = await fetch(`/messages/${nickname}/${selectedUserId}`);
     const userChat = await userChatResponse.json();
     chatArea.innerHTML = '';
+
     userChat.forEach(chat => {
         displayMessage(chat.senderId, chat.content);
     });
+
     chatArea.scrollTop = chatArea.scrollHeight;
 }
 
@@ -161,7 +166,6 @@ function onError() {
     connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
     connectingElement.style.color = 'red';
 }
-
 
 function sendMessage(event) {
     const messageContent = messageInput.value.trim();

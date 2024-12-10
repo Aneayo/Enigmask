@@ -15,19 +15,18 @@ import java.time.LocalDateTime;
 public class ChatNotification {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generate primary key
-    private Long id; // Changed to Long for compatibility with relational database primary keys
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String id;    // primary key
 
     @Column(name = "sender_id", nullable = false)
-    private String senderId; // ID of the sender
+    private String senderId;
 
     @Column(name = "recipient_id", nullable = false)
-    private String recipientId; // ID of the recipient
+    private String recipientId;
 
     @Column(name = "content", nullable = false)
     private String content; // Message content
 
     @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp = LocalDateTime.now(); // Automatically set timestamp
-
+    private LocalDateTime timestamp = LocalDateTime.now();
 }

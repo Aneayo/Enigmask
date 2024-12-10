@@ -16,6 +16,13 @@ public class ChatMessageService {
     private final ChatRoomService chatRoomService;
 
     public ChatMessage saveMessage(ChatMessage chatMessage) {
+        if (chatMessage == null) {
+            throw new IllegalArgumentException("ChatMessage cannot be null");
+        }
+        if (chatMessage.getSenderId() == null || chatMessage.getRecipientId() == null) {
+            throw new IllegalArgumentException("SenderId and RecipientId cannot be null");
+        }
+
         var chatId = chatRoomService.getChatRoomId(
                 chatMessage.getSenderId(),
                 chatMessage.getRecipientId(),
