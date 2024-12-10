@@ -3,11 +3,11 @@ package com.andy.enigmask.service;
 import com.andy.enigmask.repository.UserRepository;
 import com.andy.enigmask.model.Status;
 import com.andy.enigmask.model.User;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -15,11 +15,20 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    @Transactional
     public void saveUser(User user) {
         user.setStatus(Status.ONLINE);
-        userRepository.save(user);
+        System.out.println("Attempting to save user: " + user.getNickname());
+        try {
+            userRepository.save(user);
+            System.out.println("User saved successfully: " + user.getNickname());
+        } catch (Exception e) {
+            System.err.println("Error saving user: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
+    @Transactional
     public void disconnectUser(User user) {
         var storedUser = userRepository
                 .findById(user.getNickname())

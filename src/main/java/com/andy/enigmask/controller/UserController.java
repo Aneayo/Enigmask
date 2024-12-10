@@ -1,5 +1,6 @@
 package com.andy.enigmask.controller;
 
+import com.andy.enigmask.repository.UserRepository;
 import com.andy.enigmask.service.UserService;
 import com.andy.enigmask.model.User;
 
@@ -26,6 +27,7 @@ public class UserController {
     public User addUser(
             @Payload User user
     ) {
+        System.out.println("Received user: " + user.getNickname() + ", " + user.getFullname());
         userService.saveUser(user);
         return user;
     }
