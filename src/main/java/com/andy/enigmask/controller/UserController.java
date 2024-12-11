@@ -27,7 +27,6 @@ public class UserController {
     public User addUser(
             @Payload User user
     ) {
-        System.out.println("Received user: " + user.getNickname() + ", " + user.getFullname());
         userService.saveUser(user);
         return user;
     }

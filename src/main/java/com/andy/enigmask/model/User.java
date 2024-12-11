@@ -11,11 +11,11 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @Column(name = "nickname", nullable = false, unique = true)
-    private String nickname; // Primary key
+    @Column(name = "username", nullable = false, unique = true)
+    private String username; // Primary key
 
-    @Column(name = "fullname", nullable = false)
-    private String fullname;
+    @Column(name = "password", nullable = false)
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

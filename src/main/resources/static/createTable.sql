@@ -24,7 +24,7 @@ CREATE TABLE chat_rooms (
 );
 
 CREATE TABLE users (
-    nickname VARCHAR(255) PRIMARY KEY,
-    fullname VARCHAR(255) NOT NULL,
+    username VARCHAR(255) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL
 );
