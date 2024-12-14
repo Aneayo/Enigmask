@@ -31,23 +31,16 @@ public class ChatRoomService {
     }
 
     private String createChatId(String senderId, String recipientId) {
-        var chatId = String.format("%s_%s", senderId, recipientId);
-
-        ChatRoom senderRecipient = ChatRoom.builder()
-                .chatId(chatId)
-                .senderId(senderId)
-                .recipientId(recipientId)
-                .build();
-
-        ChatRoom recipientSender = ChatRoom.builder()
-                .chatId(chatId)
-                .senderId(senderId)
-                .recipientId(recipientId)
-                .build();
-
-        chatRoomRepository.save(senderRecipient);
-        chatRoomRepository.save(recipientSender);
-
+        String chatId = String.format("%s_%s", senderId, recipientId);
+        if (chatRoomRepository.findBySenderIdAndRecipientId(senderId, recipientId).isEmpty() &&
+                chatRoomRepository.findBySenderIdAndRecipientId(recipientId, senderId).isEmpty()) {
+            ChatRoom chatRoom = ChatRoom.builder()
+                    .chatId(chatId)
+                    .senderId(senderId)
+                    .recipientId(recipientId)
+                    .build();
+            chatRoomRepository.save(chatRoom);
+        }
         return chatId;
     }
 }

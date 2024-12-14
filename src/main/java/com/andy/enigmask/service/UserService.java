@@ -15,7 +15,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Transactional
     public void saveUser(User user) {
         user.setStatus(Status.ONLINE);
         System.out.println("Attempting to save user: " + user.getUsername());
@@ -28,7 +27,6 @@ public class UserService {
         }
     }
 
-    @Transactional
     public void disconnectUser(User user) {
         var storedUser = userRepository
                 .findById(user.getUsername())

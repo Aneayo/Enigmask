@@ -9,7 +9,7 @@ CREATE TABLE chat_message (
 );
 
 CREATE TABLE chat_notifications (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     sender_id VARCHAR(255) NOT NULL,
     recipient_id VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE chat_notifications (
 );
 
 CREATE TABLE chat_rooms (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     chat_id VARCHAR(255) NOT NULL,
     sender_id VARCHAR(255) NOT NULL,
     recipient_id VARCHAR(255) NOT NULL

@@ -2,6 +2,7 @@ package com.andy.enigmask.service;
 
 import com.andy.enigmask.model.ChatMessage;
 import com.andy.enigmask.repository.ChatMessageRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ public class ChatMessageService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomService chatRoomService;
 
+
     public ChatMessage saveMessage(ChatMessage chatMessage) {
         if (chatMessage == null) {
             throw new IllegalArgumentException("ChatMessage cannot be null");
@@ -27,9 +29,9 @@ public class ChatMessageService {
                 chatMessage.getSenderId(),
                 chatMessage.getRecipientId(),
                 true
-        );
+        ).orElseThrow();
 
-        chatMessage.setChatId(String.valueOf(chatId));
+        chatMessage.setChatId(chatId);
         chatMessageRepository.save(chatMessage);
 
         return chatMessage;

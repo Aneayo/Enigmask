@@ -14,7 +14,7 @@ import jakarta.persistence.*;
 public class ChatRoom {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment primary key
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(name = "chat_id", nullable = false)
@@ -25,4 +25,5 @@ public class ChatRoom {
 
     @Column(name = "recipient_id", nullable = false)
     private String recipientId;
+
 }
