@@ -47,7 +47,7 @@ public class ChatController {
         );
     }
 
-    @GetMapping("/messages/{senderId}/{recipientId}")
+    @GetMapping("/queue/messages/{senderId}/{recipientId}")
     public ResponseEntity<List<ChatMessage>> findChatMessages(
             @PathVariable("senderId") String senderId,
             @PathVariable("recipientId") String recipientId
