@@ -149,7 +149,7 @@ function displayMessage(senderId, content) {
 }
 
 async function fetchAndDisplayUserChat() {
-    const userChatResponse = await fetch(`/messages/${username}/${selectedUserId}`);
+    const userChatResponse = await fetch(`/queue/messages/${username}/${selectedUserId}`);
     const userChat = await userChatResponse.json();
     chatArea.innerHTML = '';
 
@@ -182,7 +182,6 @@ function sendMessage(event) {
     chatArea.scrollTop = chatArea.scrollHeight;
     event.preventDefault();
 }
-
 
 async function onMessageReceived(payload) {
     await findAndDisplayConnectedUsers();

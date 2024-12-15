@@ -1,11 +1,10 @@
-CREATE TABLE chat_message (
+CREATE TABLE chat_messages (
     id SERIAL PRIMARY KEY, -- primary key
     chat_id VARCHAR(255) NOT NULL,
     sender_id VARCHAR(255) NOT NULL,
     recipient_id VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(50) NOT NULL -- type: enum
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE chat_notifications (

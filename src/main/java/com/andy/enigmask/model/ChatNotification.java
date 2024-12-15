@@ -29,4 +29,5 @@ public class ChatNotification {
 
     @Column(name = "timestamp", nullable = false)
     private Date timestamp;
+
 }

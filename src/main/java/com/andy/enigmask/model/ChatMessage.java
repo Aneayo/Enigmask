@@ -11,7 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "chat_message")
+@Table(name = "chat_messages")
 public class ChatMessage {
 
     @Id
@@ -33,7 +33,4 @@ public class ChatMessage {
     @Column(name = "timestamp", nullable = false)
     private Date timestamp;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private MessageStatus status;
 }
