@@ -131,7 +131,6 @@ function userItemClick(event) {
     const nbrMsg = clickedUser.querySelector('.nbr-msg');
     nbrMsg.classList.add('hidden');
     nbrMsg.textContent = '0';
-
 }
 
 function displayMessage(senderId, content) {

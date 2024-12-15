@@ -1,5 +1,5 @@
 package com.andy.enigmask.encryption;
 
-public class AESEncryption {
+public class AESUtil {
 
 }
