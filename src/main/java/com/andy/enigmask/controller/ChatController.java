@@ -2,7 +2,6 @@ package com.andy.enigmask.controller;
 
 import com.andy.enigmask.model.ChatMessage;
 import com.andy.enigmask.model.ChatNotification;
-import com.andy.enigmask.model.MessageStatus;
 import com.andy.enigmask.service.ChatMessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,16 +32,17 @@ public class ChatController {
     @SendToUser("/queue/messages")
     public void processMessage(
             @Payload ChatMessage chatMessage
-    ) {
+    ) throws Exception {
         logger.info("Received message: {}", chatMessage);
         ChatMessage savedMessage = chatMessageService.saveMessage(chatMessage);
+
         simpMessagingTemplate.convertAndSendToUser(
                 chatMessage.getRecipientId(), "/queue/messages",
                 ChatNotification.builder()
                         .id(savedMessage.getId())
                         .senderId(savedMessage.getSenderId())
                         .recipientId(savedMessage.getRecipientId())
-                        .content(savedMessage.getContent())
+                        .content("Encrypted Message")
                         .build()
         );
     }
@@ -51,7 +51,7 @@ public class ChatController {
     public ResponseEntity<List<ChatMessage>> findChatMessages(
             @PathVariable("senderId") String senderId,
             @PathVariable("recipientId") String recipientId
-    ) {
+    ) throws Exception {
         return ResponseEntity.ok(chatMessageService.findChatMessages(senderId, recipientId));
     }
 }

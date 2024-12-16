@@ -1,5 +1,0 @@
-package com.andy.enigmask.encryption;
-
-public class AESEncryption {
-
-}

@@ -2,12 +2,12 @@ package com.andy.enigmask.service;
 
 import com.andy.enigmask.model.ChatMessage;
 import com.andy.enigmask.repository.ChatMessageRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +18,7 @@ public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomService chatRoomService;
+    private final MessageEncryptionService encryptionService;
     private static final Logger logger = LoggerFactory.getLogger(ChatMessageService.class);
 
     @Transactional
@@ -28,7 +29,6 @@ public class ChatMessageService {
         if (chatMessage.getSenderId() == null || chatMessage.getRecipientId() == null) {
             throw new IllegalArgumentException("SenderId and RecipientId cannot be null");
         }
-
         var chatId = chatRoomService.getChatRoomId(
                 chatMessage.getSenderId(),
                 chatMessage.getRecipientId(),
@@ -36,10 +36,11 @@ public class ChatMessageService {
         ).orElseThrow();
 
         chatMessage.setChatId(chatId);
-        logger.info("Saving message: {}", chatMessage);
-        chatMessageRepository.save(chatMessage);
 
-        return chatMessage;
+        ChatMessage encryptedMessage = encryptionService.prepareEncryptedMessage(chatMessage);
+
+        logger.info("Saving encrypted message: {}", encryptedMessage);
+        return chatMessageRepository.save(encryptedMessage);
     }
 
     @Transactional
@@ -51,7 +52,12 @@ public class ChatMessageService {
                 recipientId,
                 false
         );
-        return chatId.map(chatMessageRepository::findByChatId).orElse(new ArrayList<>());
-    }
 
+        List<ChatMessage> messages = chatId.map(chatMessageRepository::findByChatId)
+                .orElse(List.of());
+
+        return messages.stream()
+                .map(msg -> encryptionService.decryptRetrievedMessage(msg, recipientId))
+                .collect(Collectors.toList());
+    }
 }
