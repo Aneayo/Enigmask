@@ -240,3 +240,60 @@ a.logout {
     color: #fff;
     text-decoration: none;
 }
+
+.register-form {
+    max-width: 400px;
+    width: 100%; /* Ensures responsiveness */
+    padding: 40px;
+    box-sizing: border-box;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.register-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.register-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+    color: #333;
+    text-align: left; /* Align labels to the left */
+}
+
+.register-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.register-form input:focus {
+    border-color: #1abc9c;
+    outline: none;
+    box-shadow: 0 0 5px rgba(26, 188, 156, 0.5);
+}
+
+.register-form button {
+    padding: 12px;
+    border: none;
+    background-color: #34495e;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.2rem;
+    transition: background-color 0.3s;
+}
+
+.register-form button:hover {
+    background-color: #16a085; /* Slightly darker button on hover */
+}

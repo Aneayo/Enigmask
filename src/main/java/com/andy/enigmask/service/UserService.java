@@ -8,22 +8,34 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
 
+    public boolean authenticateUser(String username, String password) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        if (userOptional.isPresent() && userOptional.get().getPassword().equals(password)) {
+            User user = userOptional.get();
+            user.setStatus(Status.ONLINE);
+            userRepository.save(user); // Save the updated status
+            return true;
+        }
+        return false;
+    }
+
+
     public void saveUser(User user) {
-        user.setStatus(Status.ONLINE);
-        System.out.println("Attempting to save user: " + user.getUsername());
-        try {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
+        } else {
             userRepository.save(user);
-            System.out.println("User saved successfully: " + user.getUsername());
-        } catch (Exception e) {
-            System.err.println("Error saving user: " + e.getMessage());
-            e.printStackTrace();
+            user.setStatus(Status.ONLINE);
         }
     }
 

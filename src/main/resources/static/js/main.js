@@ -8,49 +8,54 @@ const messageInput = document.querySelector('#message');
 const connectingElement = document.querySelector('.connecting');
 const chatArea = document.querySelector('#chat-messages');
 const logout = document.querySelector('#logout');
+const registerForm = document.querySelector('#registerForm');
+const registerLink = document.querySelector('#register-link');
+const registerPage = document.querySelector('#register-page');
 
 let stompClient = null;
 let username = null;
 let password = null;
 let selectedUserId = null;
-
-const EncryptionUtil = {
-    // Basic encryption (not cryptographically secure, for demonstration)
-    encrypt(content, key) {
-        let result = '';
-        for (let i = 0; i < content.length; i++) {
-            result += String.fromCharCode(
-                content.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-            );
-        }
-        return btoa(result);  // Base64 encode
-    },
-
-    // Basic decryption
-    decrypt(encryptedContent, key) {
-        const decoded = atob(encryptedContent);
-        let result = '';
-        for (let i = 0; i < decoded.length; i++) {
-            result += String.fromCharCode(
-                decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-            );
-        }
-        return result;
-    }
-};
+let confirmPassword = null;
 
 function connect(event) {
     username = document.querySelector('#username').value.trim();
     password = document.querySelector('#password').value.trim();
 
     if (username && password) {
-        usernamePage.classList.add('hidden');
-        chatPage.classList.remove('hidden');
-
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, onConnected, onError);
+        stompClient.connect({}, function(frame) {
+            // Subscribe to login response
+            stompClient.subscribe('/user/topic/public', function(payload) {
+                const user = JSON.parse(payload.body);
+
+                if (user.status === 'ONLINE') {
+                    usernamePage.classList.add('hidden');
+                    chatPage.classList.remove('hidden');
+
+                    // Further connection logic
+                    stompClient.subscribe(`/user/${username}/queue/messages`, onMessageReceived);
+
+                    // Register the connected user
+                    stompClient.send("/app/user.addUser",
+                        {},
+                        JSON.stringify({username: username, password: password, status: 'ONLINE'})
+                    );
+
+                    findAndDisplayConnectedUsers().then();
+                } else {
+                    alert('Invalid username or password');
+                    stompClient.disconnect();
+                }
+            });
+
+            stompClient.send("/app/user.login",
+                {},
+                JSON.stringify({username: username, password: password})
+            );
+        }, onError);
     }
     event.preventDefault();
 }
@@ -191,21 +196,15 @@ function onError() {
 
 function sendMessage(event) {
     const messageContent = messageInput.value.trim();
-    if (messageContent && stompClient && selectedUserId) {
-        const encryptedContent = EncryptionUtil.encrypt(
-            messageContent,
-            username
-        );
-
+    if (messageContent && stompClient) {
         const chatMessage = {
             senderId: username,
             recipientId: selectedUserId,
-            content: encryptedContent,
+            content: messageInput.value.trim(),
             timestamp: new Date()
         };
-
         stompClient.send("/app/chat", {}, JSON.stringify(chatMessage));
-        displayMessage(username, messageContent);
+        displayMessage(username, messageInput.value.trim());
         messageInput.value = '';
     }
     chatArea.scrollTop = chatArea.scrollHeight;
@@ -215,19 +214,23 @@ function sendMessage(event) {
 async function onMessageReceived(payload) {
     await findAndDisplayConnectedUsers();
     console.log('Message received', payload);
+    const message = JSON.parse(payload.body);
+    if (selectedUserId && selectedUserId === message.senderId) {
+        displayMessage(message.senderId, message.content);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
 
-    try {
-        const message = JSON.parse(payload.body);
-        const decryptedContent = EncryptionUtil.decrypt(
-            message.content,
-            message.senderId
-        );
-        if (selectedUserId && selectedUserId === message.senderId) {
-            displayMessage(message.senderId, decryptedContent);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-    } catch (error) {
-        console.error('Decryption error:', error);
+    if (selectedUserId) {
+        document.querySelector(`#${selectedUserId}`).classList.add('active');
+    } else {
+        messageForm.classList.add('hidden');
+    }
+
+    const notifiedUser = document.querySelector(`#${message.senderId}`);
+    if (notifiedUser && !notifiedUser.classList.contains('active')) {
+        const nbrMsg = notifiedUser.querySelector('.nbr-msg');
+        nbrMsg.classList.remove('hidden');
+        nbrMsg.textContent = '';
     }
 }
 
@@ -239,7 +242,49 @@ function onLogout() {
     window.location.reload();
 }
 
-usernameForm.addEventListener('submit', connect, true);
+function jump_reg() {
+    usernamePage.classList.add('hidden');
+    registerPage.classList.remove('hidden');
+}
+
+function register(event) {
+    const username = document.querySelector('#r_nickname').value.trim();
+    const password = document.querySelector('#r_fullname').value.trim();
+    const confirmPassword = document.querySelector('#r2_fullname').value.trim();
+
+    if (password !== confirmPassword) {
+        alert('密碼不一致，請重新輸入。');
+        return;
+    }
+
+    const socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function() {
+        console.log('STOMP 連接成功，發送用戶註冊請求...');
+
+        // Explicitly set all fields, including status
+        const userData = {
+            username: username,
+            password: password,
+            status: 'OFFLINE'
+        };
+
+        stompClient.send("/app/user.addUser", {}, JSON.stringify(userData));
+
+        alert('註冊成功，請登入。');
+        registerPage.classList.add('hidden');
+        usernamePage.classList.remove('hidden');
+    }, function(error) {
+        console.error('STOMP 連接失敗: ', error);
+        alert('無法連接到伺服器，請稍後再試');
+    });
+    event.preventDefault();
+}
+
+usernameForm.addEventListener('submit', connect, true); // step 1
+registerLink.addEventListener('click', jump_reg, true);
+registerForm.addEventListener('submit', register, true);
 messageForm.addEventListener('submit', sendMessage, true);
 logout.addEventListener('click', onLogout, true);
 window.onbeforeunload = () => onLogout();

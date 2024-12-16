@@ -1,5 +1,6 @@
 package com.andy.enigmask.controller;
 
+import com.andy.enigmask.model.Status;
 import com.andy.enigmask.repository.UserRepository;
 import com.andy.enigmask.service.UserService;
 import com.andy.enigmask.model.User;
@@ -28,6 +29,19 @@ public class UserController {
             @Payload User user
     ) {
         userService.saveUser(user);
+        return user;
+    }
+
+    @MessageMapping("/user.login")
+    @SendTo("/user/topic/public")
+    public User loginUser(@Payload User user) {
+        boolean isAuthenticated = userService.authenticateUser(user.getUsername(), user.getPassword());
+
+        if (isAuthenticated) {
+            user.setStatus(Status.ONLINE);
+        } else {
+            user.setStatus(Status.OFFLINE);
+        }
         return user;
     }
 
