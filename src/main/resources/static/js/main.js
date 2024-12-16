@@ -16,9 +16,41 @@ let stompClient = null;
 let username = null;
 let password = null;
 let selectedUserId = null;
-let confirmPassword = null;
 
-function connect(event) {
+function isBase64(str) {
+    try {
+        return btoa(atob(str)) === str; // 檢查編碼後是否一致
+    } catch (error) {
+        return false;
+    }
+}
+
+const EncryptionUtil = {
+    // Basic encryption (not cryptographically secure, for demonstration)
+    encrypt(content, key) {
+        let result = '';
+        for (let i = 0; i < content.length; i++) {
+            result += String.fromCharCode(
+                content.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+            );
+        }
+        return btoa(result);  // Base64 encode
+    },
+
+    // Basic decryption
+    decrypt(encryptedContent, key) {
+        const decoded = atob(encryptedContent);
+        let result = '';
+        for (let i = 0; i < decoded.length; i++) {
+            result += String.fromCharCode(
+                decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+            );
+        }
+        return result;
+    }
+};
+
+async function connect(event) {
     username = document.querySelector('#username').value.trim();
     password = document.querySelector('#password').value.trim();
 
@@ -28,22 +60,20 @@ function connect(event) {
 
         stompClient.connect({}, function(frame) {
             // Subscribe to login response
-            stompClient.subscribe('/user/topic/public', function(payload) {
+            stompClient.subscribe('/user/topic/public', async function (payload) {
                 const user = JSON.parse(payload.body);
 
                 if (user.status === 'ONLINE') {
                     usernamePage.classList.add('hidden');
                     chatPage.classList.remove('hidden');
 
-                    // Further connection logic
                     stompClient.subscribe(`/user/${username}/queue/messages`, onMessageReceived);
 
-                    // Register the connected user
                     stompClient.send("/app/user.addUser",
                         {},
                         JSON.stringify({username: username, password: password, status: 'ONLINE'})
                     );
-
+                    await onConnected();
                     findAndDisplayConnectedUsers().then();
                 } else {
                     alert('Invalid username or password');
@@ -71,9 +101,10 @@ function onConnected() {
     );
 
     const connectedUserElement = document.querySelector('#connected-user-username');
-
+    console.log(connectedUserElement)
     if (connectedUserElement) {
         connectedUserElement.textContent = username;
+        // console.log(connectedUserElement);
     } else {
         console.error("Error: The element '#connected-user-username' does not exist in the DOM.");
     }
@@ -171,10 +202,25 @@ function displayMessage(senderId, content) {
     } else {
         messageContainer.classList.add('receiver');
     }
+    let decryptedContent = content;
+    // Check if the content is Base64 encoded and decrypt it if necessary
+    if (isBase64(content)) {
+        decryptedContent = EncryptionUtil.decrypt(content, senderId);
+        console.log("Decrypted content:", decryptedContent);
+    } else {
+        console.error("Invalid Base64 string:", content);
+    }
     const message = document.createElement('p');
     message.textContent = content;
+    message.textContent = decryptedContent;
     messageContainer.appendChild(message);
     chatArea.appendChild(messageContainer);
+    // const message = document.createElement('p');
+    // // EncryptionUtil.decrypt(content);
+    // console.log(content);
+    // message.textContent = content;
+    // messageContainer.appendChild(message);
+    // chatArea.appendChild(messageContainer);
 }
 
 async function fetchAndDisplayUserChat() {
@@ -196,15 +242,21 @@ function onError() {
 
 function sendMessage(event) {
     const messageContent = messageInput.value.trim();
-    if (messageContent && stompClient) {
+    if (messageContent && stompClient && selectedUserId) {
+        const encryptedContent = EncryptionUtil.encrypt(
+            messageContent,
+            username
+        );
+
         const chatMessage = {
             senderId: username,
             recipientId: selectedUserId,
-            content: messageInput.value.trim(),
+            content: encryptedContent,
             timestamp: new Date()
         };
+
         stompClient.send("/app/chat", {}, JSON.stringify(chatMessage));
-        displayMessage(username, messageInput.value.trim());
+        displayMessage(username, messageContent);
         messageInput.value = '';
     }
     chatArea.scrollTop = chatArea.scrollHeight;
@@ -215,22 +267,26 @@ async function onMessageReceived(payload) {
     await findAndDisplayConnectedUsers();
     console.log('Message received', payload);
     const message = JSON.parse(payload.body);
-    if (selectedUserId && selectedUserId === message.senderId) {
-        displayMessage(message.senderId, message.content);
-        chatArea.scrollTop = chatArea.scrollHeight;
-    }
 
-    if (selectedUserId) {
-        document.querySelector(`#${selectedUserId}`).classList.add('active');
-    } else {
-        messageForm.classList.add('hidden');
-    }
+    try {
+        const message = JSON.parse(payload.body);
 
-    const notifiedUser = document.querySelector(`#${message.senderId}`);
-    if (notifiedUser && !notifiedUser.classList.contains('active')) {
-        const nbrMsg = notifiedUser.querySelector('.nbr-msg');
-        nbrMsg.classList.remove('hidden');
-        nbrMsg.textContent = '';
+        let decryptedContent = message.content
+        console.log(decryptedContent)
+        // Check before decryption
+        if (isBase64(message.content)) {
+            decryptedContent = EncryptionUtil.decrypt(message.content, message.senderId);
+            console.log("Decrypted content:", decryptedContent);
+        } else {
+            console.error("Invalid Base64 string:", message.content);
+        }
+        if (selectedUserId && selectedUserId === message.senderId) {
+            await fetchAndDisplayUserChat();
+            displayMessage(message.senderId, decryptedContent);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+    } catch (error) {
+        console.error('Decryption error:', error);
     }
 }
 
@@ -288,3 +344,9 @@ registerForm.addEventListener('submit', register, true);
 messageForm.addEventListener('submit', sendMessage, true);
 logout.addEventListener('click', onLogout, true);
 window.onbeforeunload = () => onLogout();
+
+function startChatPolling() {
+    setInterval(fetchAndDisplayUserChat, 20);
+}
+
+startChatPolling();
